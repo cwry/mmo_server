@@ -1,0 +1,20 @@
+{
+  "name": "mmo_server",
+  "version": "0.0.1",
+  "main": "src/server.js",
+  "scripts": {
+    "start": "sudo node src/server.js"
+  },
+  "repository": {
+    "type": "git",
+    "url": ""
+  },
+  "author": "",
+  "homepage": "",
+  "dependencies": {
+    "bcrypt": "^0.8.7",
+    "mongoose": "^4.7.7",
+    "socket.io": "^1.7.2",
+    "uuid": "^2.0.2"
+  }
+}
