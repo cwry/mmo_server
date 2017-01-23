@@ -16,7 +16,7 @@ module.exports = function onLogin({
         }, (err, user) => {
             if (err) {
                 log("failed to find user" + username);
-                reject();
+                return reject();
             }
 
             user.comparePassword(password, function(err, isMatch) {
@@ -24,11 +24,12 @@ module.exports = function onLogin({
                     log.error("password compare error", username);
                     return reject();
                 }
-                if (!isMatch){
+
+                if (!isMatch) {
                     log("password didn't match", username);
-                    
                     return reject();
                 }
+
                 log("user logged in: " + username);
                 socket.sessionCache.user = user;
                 resolve();

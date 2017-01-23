@@ -82,4 +82,6 @@ module.exports = function onConnection(socket) {
     socket.permissions = socket.permissions || {};
     
     socket.addPermission(authPermission);
+    
+    socket.emit("init");
 };
