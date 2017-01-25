@@ -5,7 +5,7 @@ const authPermission = require("../permissions/auth_permissions.js");
 
 module.exports = function onConnection(socket) {
     log("new client connected:", socket.id);
-    
+
     socket.on("action", ({
         action,
         data
@@ -23,18 +23,19 @@ module.exports = function onConnection(socket) {
                     }).then((data) => {
                         if (typeof data === "object") {
                             callback({
-                                success : true,
+                                success: true,
                                 data: data
                             });
-                        }else{
+                        }
+                        else {
                             callback({
-                                success : true
+                                success: true
                             });
                         }
                     }).catch((error) => {
                         if (typeof error === "object") {
                             const res = {
-                                success : false
+                                success: false
                             };
 
                             if (typeof error.error === "string") {
@@ -48,13 +49,13 @@ module.exports = function onConnection(socket) {
                         }
                         else if (typeof error === "string") {
                             callback({
-                                success : false,
+                                success: false,
                                 error: error
                             });
                         }
                         else {
                             callback({
-                                success : false
+                                success: false
                             });
                         }
                     });
@@ -64,24 +65,39 @@ module.exports = function onConnection(socket) {
 
         if (!valid) {
             callback({
-                success : false,
+                success: false,
                 error: "ERR_NO_SUCH_ACTION"
             });
         }
     });
-    
+
     socket.addPermission = (permission) => {
         socket.permissions[permission.namespace] = permission.actions;
     };
-    
+
     socket.removePermission = (permission) => {
-        this.permissions[permission.namespace] = undefined;
+        socket.permissions[permission.namespace] = undefined;
     };
-    
+
+    socket.resetPermissions = () => {
+        socket.permissions = {};
+    };
+
+    socket.resetToInit = () => {
+        socket.resetPermissions();
+        socket.addPermission(authPermission);
+        socket.leaveAll();
+        socket.join(socket.id);
+    };
+
     socket.sessionCache = socket.sessionCache || {};
     socket.permissions = socket.permissions || {};
-    
+
     socket.addPermission(authPermission);
-    
+
+    socket.on("disconnect", () => {
+        log("client disconnected", socket.id);
+    });
+
     socket.emit("init");
 };

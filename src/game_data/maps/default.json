@@ -1,0 +1,53 @@
+{
+    "zone": "default",
+    
+    "mapData": [
+        [{
+            "type": "MAP_SOLID"
+        }, {
+            "type": "MAP_SOLID"
+        }, {
+            "type": "MAP_SOLID"
+        }, {
+            "type": "MAP_SOLID"
+        }],
+        [{
+            "type": "MAP_SOLID"
+        }, {
+            "type": "MAP_TELEPORT"
+        }, {
+            "type": "MAP_WALKABLE"
+        }, {
+            "type": "MAP_SOLID"
+        }],
+        [{
+            "type": "MAP_SOLID"
+        }, {
+            "type": "MAP_WALKABLE"
+        }, {
+            "type": "MAP_WALKABLE"
+        }, {
+            "type": "MAP_SOLID"
+        }],
+        [{
+            "type": "MAP_SOLID"
+        }, {
+            "type": "MAP_SOLID"
+        }, {
+            "type": "MAP_SOLID"
+        }, {
+            "type": "MAP_SOLID"
+        }]
+    ],
+    
+    "mapMetrics": {
+        "offset": {
+            "x": 0,
+            "y": 0
+        },
+        "size": {
+            "width": 4,
+            "height": 4
+        }
+    }
+}

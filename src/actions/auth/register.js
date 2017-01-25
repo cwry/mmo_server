@@ -14,14 +14,14 @@ module.exports = function({
             password: password
         });
 
-        user.save((err) => {
-            if (err) {
-                log.error("failed to register user", username, err.toString());
-                return reject();
-            }
-
-            log("registered user", username);
-            resolve();
-        });
+        user.save()
+            .then(() => {
+                log("registered user", username);
+                resolve();
+            })
+            .catch((err) => {
+                log.error("register error - user", username, err.toString());
+                reject();
+            });
     });
 };

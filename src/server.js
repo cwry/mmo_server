@@ -5,6 +5,7 @@ const PORT = process.env.PORT || 8080;
 const server = require('http').createServer();
 const io = require('socket.io')(server);
 const mongoose = require("mongoose");
+mongoose.Promise = Promise;
 
 const socketSetup = require("./socket/socket_setup.js");
 const log = require("./tools/log.js")("server");
@@ -20,9 +21,15 @@ db.on("error", (err) => {
 
 db.once("open", () => {
     log("connected to db");
-    
+
     io.on("connection", socketSetup);
-    
+
     server.listen(PORT, IP);
     log("server listening on port " + PORT);
+});
+
+process.on("SIGTERM", () => {
+    for (let key of Object.keys(io.sockets.connected)) {
+        io.sockets.connected[key].disconnect();
+    }
 });
