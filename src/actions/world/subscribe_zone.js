@@ -15,6 +15,7 @@ module.exports = function({
         const zone = zones[sessionCache.character.position.zone];
         zone.subscribe(socket);
         
+        log("socket", socket.id, "subscribed to zone", sessionCache.character.position.zone);
         resolve(zone.extractEntityList());
     });
 };
