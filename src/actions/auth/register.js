@@ -1,12 +1,16 @@
 "use strict";
-const User = require("../../models/user_model");
-const log = require("../../tools/log.js")("auth");
+const User = require.main.require("./models/user_model");
+
+const log = require.main.require("./util/log.js")("auth", "register");
+const ClientError = require.main.require("./util/client_error_codes.js")(
+    "ERR_INVALID_USERNAME"
+);
 
 module.exports = function({
     data: {
         username,
         password
-    }
+    } = {}
 }) {
     return new Promise((resolve, reject) => {
         const user = new User({
@@ -20,8 +24,8 @@ module.exports = function({
                 resolve();
             })
             .catch((err) => {
-                log.error("register error - user", username, err.toString());
-                reject();
+                log.error(err.toString());
+                reject(ClientError("ERR_INVALID_USERNAME"));
             });
     });
 };

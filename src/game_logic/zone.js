@@ -1,83 +1,53 @@
 "use strict";
-const log = require("../tools/log.js")("zone");
+const log = require.main.require("./util/log.js")("zone");
 
 module.exports = function Zone({
     zone
 }) {
-    const sockets = {};
-
-    const join = (socket) => {
-        const zoneCharData = extractZoneCharData();
-        sockets[socket.id] = socket;
-        socket.join(zone);
-        socket.to(zone).emit("zone/character_joined", extractCharData(socket));
+    const players = {};
+    
+    const join = (socket, {x, y}) => {
+        players[socket.id] = {
+            socket : socket,
+            sessionCache : socket.sessionCache
+        };
         socket.on("disconnect", onSocketDisconnect);
-
+        socket.sessionCache.character.position.zone = zone;
+        socket.sessionCache.character.position.x = x;
+        socket.sessionCache.character.position.y = y;
+        socket.to(zone).emit("zone:character_joined", socket.sessionCache.character.extractPublicInfo());
         log("user", socket.sessionCache.user.username, "joined zone", zone);
-        return zoneCharData;
     };
-
+    
+    const subscribe = (socket) => {
+        socket.join(zone);
+    };
+    
     const leave = (socket) => {
-        sockets[socket.id] = undefined;
         socket.leave(zone);
-        socket.to(zone).emit("zone/character_left", extractCharData(socket));
         socket.removeListener("disconnect", onSocketDisconnect);
-
-        log("user", socket.sessionCache.user.username, "left zone", zone);
+        socket.to(zone).emit("zone:character_left", players[socket.id].sessionCache.character.extractPublicInfo());
+        log("user", players[socket.id].sessionCache.user.username, "left zone", zone);
+        players[socket.id] = undefined;
     };
 
     const onSocketDisconnect = function() {
         leave(this);
     };
-
-    const extractZoneCharData = () => {
-        const charData = {};
-
-        for (let key of Object.keys(sockets)) {
-            const {
-                id,
-                name,
-                position: {
-                    x,
-                    y
-                }
-            } = sockets[key].sessionCache.character;
-
-            charData[id] = {
-                name: name,
-                position: {
-                    x: x,
-                    y: y
-                }
-            };
+    
+    const extractEntityList = () => {
+        const entityList = {};
+        entityList.players = [];
+        for(let socketID of Object.keys(players)){
+            entityList.players.push(players[socketID].sessionCache.character.extractPublicInfo());
         }
-
-        return charData;
-    };
-
-    const extractCharData = (socket) => {
-        const {
-            id,
-            name,
-            position: {
-                x,
-                y
-            }
-        } = socket.sessionCache.character;
-
-        return {
-            id: id,
-            name: name,
-            position: {
-                zone: zone,
-                x: x,
-                y: y
-            }
-        };
+        return entityList;
     };
 
     return {
         join: join,
-        leave: leave
-    }
-}
+        leave: leave,
+        subscribe : subscribe,
+        extractEntityList : extractEntityList
+    };
+};

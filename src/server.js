@@ -7,8 +7,8 @@ const io = require('socket.io')(server);
 const mongoose = require("mongoose");
 mongoose.Promise = Promise;
 
-const socketSetup = require("./socket/socket_setup.js");
-const log = require("./tools/log.js")("server");
+const socketSetup = require.main.require("./socket/socket_setup.js");
+const log = require.main.require("./util/log.js")("server");
 
 log("booting...");
 
@@ -30,6 +30,6 @@ db.once("open", () => {
 
 process.on("SIGTERM", () => {
     for (let key of Object.keys(io.sockets.connected)) {
-        io.sockets.connected[key].disconnect();
+        io.sockets.connected[key].disconnect(true);
     }
 });

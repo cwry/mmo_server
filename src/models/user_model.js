@@ -10,6 +10,8 @@ const userSchema = mongoose.Schema({
         required: true,
         lowercase: true,
         trim: true,
+        minlength: 3,
+        maxlength: 12,
         index: {
             unique: true
         }
@@ -18,10 +20,18 @@ const userSchema = mongoose.Schema({
         type: String,
         required: true
     },
-    characters: [{
-        type: mongoose.Schema.Types.ObjectId,
-        ref: "character"
-    }]
+    characters: {
+        type: [{
+            type: mongoose.Schema.Types.ObjectId,
+            ref: "character",
+        }],
+        validate: {
+            validator: (val) => {
+                return val.length <= 3;
+            },
+            message: "{PATH} exceeds the limit of 3"
+        }
+    }
 });
 
 userSchema.pre("save", function(next) {
@@ -30,10 +40,9 @@ userSchema.pre("save", function(next) {
     bcrypt.genSalt(SALT_WORK_FACTOR, (err, salt) => {
         if (err) return next(err);
 
-        bcrypt.hash(this.password, salt, function(err, hash) {
+        bcrypt.hash(this.password, salt, (err, hash) => {
             if (err) return next(err);
 
-            console.log(hash);
             this.password = hash;
             next();
         });

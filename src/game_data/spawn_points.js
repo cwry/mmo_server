@@ -1,4 +1,4 @@
 "use strict";
 module.exports = {
-    default : require("./spawn_points/default.json")
+    default : require.main.require("./game_data/spawn_points/default.json")
 }

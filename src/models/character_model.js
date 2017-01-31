@@ -1,6 +1,5 @@
 "use strict";
 const mongoose = require("mongoose");
-const User = require("./user_model.js");
 
 const characterSchema = mongoose.Schema({
     user: {
@@ -13,6 +12,8 @@ const characterSchema = mongoose.Schema({
         type: String,
         required: true,
         lowercase: true,
+        minlength: 3,
+        maxlength: 12,
         index: {
             unique: true
         }
@@ -37,5 +38,27 @@ const characterSchema = mongoose.Schema({
         }
     }
 });
+
+characterSchema.methods.extractPublicInfo = function() {
+    const {
+        id,
+        name,
+        position: {
+            zone,
+            x,
+            y
+        }
+    } = this;
+
+    return {
+        id: id,
+        name: name,
+        position: {
+            zone: zone,
+            x: x,
+            y: y
+        }
+    };
+};
 
 module.exports = mongoose.model("character", characterSchema);

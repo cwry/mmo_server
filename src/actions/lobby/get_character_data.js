@@ -1,11 +1,11 @@
 "use strict";
-const log = require("../../tools/log.js")("lobby");
+const log = require.main.require("./util/log.js")("lobby", "get character data");
 
 module.exports = function({
-    socket
+    sessionCache
 }) {
     return new Promise((resolve, reject) => {
-        socket.sessionCache.user.populate("characters").execPopulate()
+        sessionCache.user.populate("characters").execPopulate()
             .then((user) => {
                 const chars = [];
                 for (let c of user.characters) {
@@ -26,7 +26,7 @@ module.exports = function({
                 });
             })
             .catch((err) => {
-                log.error("couldn't populate characters of user", socket.sessionCache.user.username, err.toString());
+                log.error("couldn't populate characters of user", sessionCache.user.username, err.toString());
                 reject();
             });
     });

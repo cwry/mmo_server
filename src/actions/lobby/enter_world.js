@@ -1,33 +1,45 @@
 "use strict";
-const log = require("../../tools/log.js")("lobby");
-const Character = require("../../models/character_model.js");
-const lobbyPermission = require("../../permissions/lobby_permissions.js");
-const worldPermission = require("../../permissions/world_permissions.js");
-const zones = require("../../game_data/zones.js");
+const Character = require.main.require("./models/character_model.js");
+const lobbyPermission = require.main.require("./permissions/lobby_permissions.js");
+const worldPermission = require.main.require("./permissions/world_permissions.js");
+const zones = require.main.require("./game_data/zones.js");
+const spawnPoints = require.main.require("./game_data/spawn_points.js");
+
+const log = require.main.require("./util/log.js")("lobby", "enter world");
+const ClientError = require.main.require("./util/client_error_codes.js")(
+    "ERR_CHARACTER_NOT_FOUND"
+);
 
 module.exports = function({
     socket,
+    sessionCache,
     data: {
         character_id
-    }
+    } = {}
 }) {
     return new Promise((resolve, reject) => {
         Character.findById(character_id)
+            .catch((err) => {
+                reject(ClientError("ERR_CHARACTER_NOT_FOUND"));
+                return Promise.reject(err);
+            })
             .then((character) => {
                 if (!character) {
-                    log("failed to find character", character_id);
-                    return reject();
+                    reject(ClientError("ERR_CHARACTER_NOT_FOUND"));
+                    return Promise.reject("failed to find character " + character_id);
                 }
-                if (character.user != socket.sessionCache.user.id) {
-                    log("user", socket.sessionCache.user.username, "tried to login with foreign character");
-                    return reject();
+                if (character.user != sessionCache.user.id) {
+                    reject(ClientError("ERR_CHARACTER_NOT_FOUND"));
+                    return Promise.reject("user " + sessionCache.user.username + " tried to login with foreign character");
                 }
+                
                 if (!zones[character.position.zone]) {
-                    log("zone", character.position.zone, "doesn't exist");
-                    return reject();
+                    character.position.zone = spawnPoints.default.zone;
+                    character.position.x = spawnPoints.default.position.x;
+                    character.position.y = spawnPoints.default.position.y;
                 }
 
-                socket.sessionCache.character = character;
+                sessionCache.character = character;
                 socket.removePermission(lobbyPermission);
                 socket.addPermission(worldPermission);
                 socket.on("disconnect", () => {
@@ -40,11 +52,14 @@ module.exports = function({
                         });
                 });
                 
-                resolve(zones[character.position.zone].join(socket));
+                zones[character.position.zone].join(socket, {x : character.position.x, y : character.position.y});
+                resolve({
+                    zone : character.position.zone
+                });
                 log("character", character.name, "entered world");
             })
             .catch((err) => {
-                log.error("enter world error - character", character_id, err.toString());
+                log.error(err.toString());
                 reject();
             });
     });
